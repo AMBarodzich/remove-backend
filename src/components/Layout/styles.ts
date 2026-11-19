@@ -1,0 +1,15 @@
+import styled from '@emotion/styled';
+
+export const Page = styled.div`
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  color: #1E033A;
+`;
+
+export const Main = styled.main`
+  flex: 1 1 auto;
+  scroll-behavior: smooth;
+`;
+
+
