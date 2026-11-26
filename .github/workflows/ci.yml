@@ -3,18 +3,18 @@ name: build-and-deploy
 on:
   push:
     branches: [main]
-    paths-ignore:
-      - chart/values.yaml
   workflow_dispatch:
 
 permissions:
   id-token: write
-  contents: write
+  contents: read
 
 env:
   AWS_REGION: us-east-1
   ECR_REPOSITORY: iba-prod-backend
   AWS_ROLE_ARN: arn:aws:iam::443370672158:role/iba-prod-github-remove-backend
+  HELM_REPOSITORY: AMBarodzich/remove-helmcharts
+  HELM_CHART: remove-backend
 
 jobs:
   build:
@@ -47,18 +47,26 @@ jobs:
             --push \
             .
 
+      - name: Checkout Helm charts
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.HELM_REPOSITORY }}
+          token: ${{ secrets.HELMCHARTS_TOKEN }}
+          path: helmcharts
+          ref: main
+
       - name: Point Helm chart at the new image
         env:
           IMAGE_TAG: ${{ github.sha }}
+        working-directory: helmcharts
         run: |
-          sed -i "s/^  tag: .*/  tag: \"${IMAGE_TAG}\"/" chart/values.yaml
-          sed -i "s/^  targetPort: .*/  targetPort: 8080/" chart/values.yaml
+          sed -i "s/^  tag: .*/  tag: \"${IMAGE_TAG}\"/" "$HELM_CHART/values.yaml"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add chart/values.yaml
+          git add "$HELM_CHART/values.yaml"
           if git diff --cached --quiet; then
             echo "image tag already set"
             exit 0
           fi
-          git commit -m "chore: deploy image ${IMAGE_TAG}"
+          git commit -m "chore(${HELM_CHART}): deploy image ${IMAGE_TAG}"
           git push
