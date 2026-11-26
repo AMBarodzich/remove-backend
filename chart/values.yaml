@@ -2,7 +2,7 @@ replicaCount: 1
 
 image:
   repository: 443370672158.dkr.ecr.us-east-1.amazonaws.com/iba-prod-backend
-  tag: "pending"
+  tag: "3a1e3870cd67c10e96e31a3a58cce8e08a91c0ba"
   pullPolicy: IfNotPresent
 
 service:
