@@ -16,34 +16,14 @@ COPY . .
 RUN npm run build
 
 # Production stage. CI pushes only this stage.
-FROM node:20-alpine AS production
+# nginx-unprivileged is ~20 MB and already runs as a non-root user on port 8080.
+FROM nginxinc/nginx-unprivileged:1.27-alpine AS production
 
-# Устанавливаем serve глобально
-RUN npm install -g serve
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=builder --chown=nginx:nginx /app/dist /usr/share/nginx/html
 
-WORKDIR /app
+EXPOSE 8080
 
-# Копируем собранное приложение из builder stage
-COPY --from=builder /app/dist ./dist
-
-# Копируем package.json для версионирования (опционально)
-COPY --from=builder /app/package.json ./package.json
-
-# Создаем непривилегированного пользователя
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nextjs -u 1001
-
-# Меняем владельца файлов
-RUN chown -R nextjs:nodejs /app
-
-# Переключаемся на непривилегированного пользователя
-USER nextjs
-
-EXPOSE 3000
-
-# Healthcheck для Kubernetes liveness/readiness probes
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3000', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})" || exit 1
-
-CMD ["serve", "-s", "dist", "-l", "3000", "--no-clipboard"]
+  CMD wget -q -O /dev/null http://127.0.0.1:8080/ || exit 1
 
