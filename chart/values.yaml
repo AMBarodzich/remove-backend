@@ -1,0 +1,14 @@
+replicaCount: 1
+
+image:
+  repository: 443370672158.dkr.ecr.us-east-1.amazonaws.com/iba-prod-backend
+  tag: "pending"
+  pullPolicy: IfNotPresent
+
+service:
+  type: LoadBalancer
+  port: 80
+  targetPort: 3000
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing
+    service.beta.kubernetes.io/aws-load-balancer-internal: "false"

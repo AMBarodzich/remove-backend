@@ -15,8 +15,8 @@ COPY . .
 # Собираем приложение
 RUN npm run build
 
-# Production stage
-FROM node:20-alpine
+# Production stage. CI pushes only this stage.
+FROM node:20-alpine AS production
 
 # Устанавливаем serve глобально
 RUN npm install -g serve
