@@ -16,8 +16,8 @@ COPY . .
 RUN npm run build
 
 # Production stage. CI pushes only this stage.
-# nginx-unprivileged is ~20 MB and already runs as a non-root user on port 8080.
-FROM nginxinc/nginx-unprivileged:1.27-alpine AS production
+# nginx-unprivileged stable is ~25 MB and already runs as a non-root user on port 8080.
+FROM nginx/nginx-unprivileged:1.30.8-alpine AS production
 
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=builder --chown=nginx:nginx /app/dist /usr/share/nginx/html
